@@ -1,6 +1,8 @@
-# Fortune Wheel for Windows
+# Fortune Wheel for Windows — rotating pointer prototype
 
 A minimal C# / WPF prototype for 1–5 players. Dark, resizable interface based on the agreed design C: field editor on the left, wheel on the right, and per-player spin settings below the editor. All game controls are on one screen; the editor scrolls when needed.
+
+This branch, `prototype/rotating-pointer`, keeps the wheel and its labels stationary. A small inward-pointing arrow travels around the rim. Only the arrow has an animated rotation transform.
 
 ## Run locally
 
@@ -9,6 +11,7 @@ Requires **Windows 10/11** and the **.NET 10 SDK**. Open the repository folder i
 ```powershell
 git clone https://github.com/fedkivsa/fortune-wheel-windows.git
 cd fortune-wheel-windows
+git switch prototype/rotating-pointer
 dotnet run --project src/FortuneWheel
 ```
 
@@ -19,12 +22,12 @@ The VS Code build task and debugger launch configuration are included. Press F5 
 - 1–5 players, each with 1–5 named fields.
 - Every player owns `360 / playerCount` degrees, regardless of field count.
 - Field values are relative weights, with no required total. Field angle = player angle × weight / sum of that player's weights. For example, 1 and 3 mean 25% and 75%. Zero excludes a field; at least one weight per player must be positive.
-- **Start round** shuffles the players and spins exactly once per player. Direction follows the force sign: positive clockwise, negative counterclockwise. Force zero selects the field at the current angle without motion.
+- **Start round** shuffles the players and spins exactly once per player. Pointer direction follows the force sign: positive clockwise, negative counterclockwise. Force zero selects the field at the current angle without motion.
 - Force and drag default to 5. Force accepts integers from -10 through 10; drag accepts 1 through 10. Player overrides use these same ranges; clear an override to inherit the corresponding default.
 - **Vary spin impulse (±10%)** applies a uniformly random factor from 0.9 to 1.1 to the starting speed. Turn it off for exact configured impulses.
 - Any spin can select any player's field. Results show both the spinner and the selected field's owner.
-- The wheel stops completely, shows the result, and waits **two seconds** before the next spin. Its angle carries over between spins and rounds.
-- **Cancel round** immediately freezes the wheel, retains completed results, and records no result for the interrupted spin. It also cancels the pause between spins.
+- The pointer stops completely, shows the result, and waits **two seconds** before the next spin. The pointer angle carries over between spins and rounds.
+- **Cancel round** immediately freezes the pointer, retains completed results, and records no result for the interrupted spin. It also cancels the pause between spins.
 - A new round clears the previous round's results. No scores, elimination rules, or persistent history are imposed.
 - **+ Field** adds weight 1. Removing a field preserves the other weights. **Equal weights** sets every field to 1.
 - Click the **Field editor** header to fold or unfold it. Spin settings remain below it.
@@ -33,7 +36,7 @@ The VS Code build task and debugger launch configuration are included. Press F5 
 
 ## Physics and rendering
 
-No winning field is preselected. The final angle is calculated from the motion and mapped to the fixed pointer at twelve o'clock.
+No winning field is preselected. The final angle is calculated from the pointer motion and mapped directly to the stationary field beneath its tip. Zero degrees is twelve o'clock; positive angles are clockwise.
 
 ```
 initial speed = 20 × |force|^1.5 × impulse multiplier [degrees/second]
@@ -45,11 +48,11 @@ angle(t)     = start + direction × (initial speed × t − 0.5 × deceleration 
 
 Drag always brakes opposite the motion and must be from **1 to 10**. Zero and negative drag are rejected in the UI, INI loader and physics model, so every spin stops naturally. Force zero stays still.
 
-Force 1 and drag 10 rotate exactly **2°** with variation off (1.62–2.42° with ±10% variation). Default 5/5 spins travel 500° in about 4.47 seconds.
+Force 1 and drag 10 move the pointer exactly **2°** with variation off (1.62–2.42° with ±10% variation). Default 5/5 spins travel 500° in about 4.47 seconds.
 
-Time is clamped at the exact stop time. WPF's `CompositionTarget.Rendering` updates a single rotation transform using a `Stopwatch`. Wheel geometry is retained between frames, so physics results do not depend on rendering frame rate. This is a simple constant-friction model, with no pointer bounce or mechanical detents. Higher force magnitude increases travel and duration; higher drag decreases them. Identical impulses can produce repeated patterns; outcomes are not guaranteed to be uniformly distributed.
+Time is clamped at the exact stop time. WPF's `CompositionTarget.Rendering` updates only the pointer’s rotation transform using a `Stopwatch`. Wheel geometry and text remain stationary between frames, so physics results do not depend on rendering frame rate. This is a simple constant-friction model, with no pointer bounce or mechanical detents. Higher force magnitude increases travel and duration; higher drag decreases them. Identical impulses can produce repeated patterns; outcomes are not guaranteed to be uniformly distributed.
 
-Sector boundaries use clockwise, half-open intervals: the boundary belongs to the following sector. Text labels rotate with the wheel. Smoothness, DPI appearance, and window behavior still need interactive testing on your Windows machine.
+Sector boundaries use clockwise, half-open intervals: the boundary belongs to the following sector. Text labels remain stationary and readable throughout the spin. Smoothness, DPI appearance, and window behavior still need interactive testing on your Windows machine.
 
 ## INI configuration
 
@@ -79,7 +82,7 @@ Run `artifacts/windows-x64/FortuneWheel.exe`. Keep the entire published folder t
 ## First local test
 
 1. Run a three-player round: verify one result per player, random order and force-controlled direction, and the two-second pauses.
-2. Try one player/one field and five players/five fields. Resize the window and inspect the wheel at your normal DPI scaling.
+2. Verify the pointer moves clockwise for positive force and counterclockwise for negative force, and the selected field is under its tip. Try one player/one field and five players/five fields. Resize the window and inspect the wheel at your normal DPI scaling.
 3. Test force from -10 to 10 and drag from 1 to 10, blank overrides, and both states of the impulse checkbox.
 4. Try invalid numeric text, all-zero or negative weights, and an invalid INI file. Starting/saving must fail with useful feedback.
 5. Save and reload a preset. Check names, weights, overrides, and the checkbox.
@@ -89,7 +92,7 @@ Run `artifacts/windows-x64/FortuneWheel.exe`. Keep the entire published folder t
 
 - `src/FortuneWheel/MainWindow.xaml` — dark layout and bindings.
 - `MainWindow.xaml.cs` — editor actions, round lifecycle, file dialogs.
-- `WheelView.cs` — vector wheel, labels, winner outline.
+- `WheelView.cs` — stationary vector wheel, labels, winner outline.
 - `Physics.cs` — spin motion, sector mapping, shuffle.
 - `Models.cs` / `Ini.cs` — configuration model, validation, persistence.
 - `tests/FortuneWheel.Checks` — executable checks sharing the production core files.

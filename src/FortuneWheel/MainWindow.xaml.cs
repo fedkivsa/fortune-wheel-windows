@@ -147,14 +147,14 @@ public partial class MainWindow : Window
                 int force = p.Force ?? settings.DefaultForce;
                 int drag = p.Drag ?? settings.DefaultDrag;
                 double scale = settings.VaryImpulse ? 0.9 + random.NextDouble() * 0.2 : 1;
-                var motion = new SpinMotion(Rotation.Angle, force, drag, scale);
+                var motion = new SpinMotion(PointerRotation.Angle, force, drag, scale);
                 RoundStatus.Text = $"Spin {i + 1}/{order.Length} · {p.Name} · {(force > 0 ? "↻" : force < 0 ? "↺" : "No impulse")}";
                 Feedback.Text = $"Force {force} · Drag {drag} · Impulse {scale:0.00}×";
                 Wheel.Selected = null;
                 Wheel.InvalidateVisual();
                 await Animate(motion, cts.Token);
                 cts.Token.ThrowIfCancellationRequested();
-                var selected = WheelMath.Winner(settings, Rotation.Angle);
+                var selected = WheelMath.Winner(settings, PointerRotation.Angle);
                 Wheel.Selected = selected;
                 Wheel.InvalidateVisual();
                 var owner = settings.Players[selected.PlayerIndex];
@@ -189,7 +189,7 @@ public partial class MainWindow : Window
         void Render(object? sender, EventArgs e)
         {
             double seconds = clock.Elapsed.TotalSeconds;
-            Rotation.Angle = WheelMath.Normalize(motion.AngleAt(seconds));
+            PointerRotation.Angle = WheelMath.Normalize(motion.AngleAt(seconds));
             if (seconds >= motion.Duration) completion.TrySetResult();
         }
         CompositionTarget.Rendering += Render;
@@ -212,7 +212,7 @@ public partial class MainWindow : Window
             configPath = dialog.FileName;
             BindSettings();
             dirty = false;
-            Rotation.Angle = 0;
+            PointerRotation.Angle = 0;
             results.Clear();
             RoundStatus.Text = "Ready to spin";
             OrderText.Text = "Each player spins once. Two seconds between spins.";
