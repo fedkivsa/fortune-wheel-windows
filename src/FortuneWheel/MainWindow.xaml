@@ -93,10 +93,11 @@
     <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <Viewbox Stretch="Uniform">
      <Grid Width="680" Height="680">
-      <local:WheelView x:Name="Wheel" Width="620" Height="620" RenderTransformOrigin="0.5,0.5">
-       <local:WheelView.RenderTransform><RotateTransform x:Name="Rotation"/></local:WheelView.RenderTransform>
-      </local:WheelView>
-      <Path Data="M 322,12 L 358,12 L 340,49 Z" Fill="#F8FAFC" Stroke="#0C131F" StrokeThickness="4"/>
+      <local:WheelView x:Name="Wheel" Width="620" Height="620"/>
+      <!-- Only this small pointer rotates, around the shared wheel center. -->
+      <Path Data="M 328,14 L 352,14 L 340,43 Z" Fill="#F8FAFC" Stroke="#0C131F" StrokeThickness="3" IsHitTestVisible="False">
+       <Path.RenderTransform><RotateTransform x:Name="PointerRotation" CenterX="340" CenterY="340"/></Path.RenderTransform>
+      </Path>
      </Grid>
     </Viewbox>
     <StackPanel Grid.Row="1" Margin="8,0,8,16">

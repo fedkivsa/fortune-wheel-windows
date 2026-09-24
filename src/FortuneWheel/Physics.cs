@@ -58,9 +58,9 @@ public static class WheelMath
         return result;
     }
 
-    public static Sector Winner(Settings settings, double wheelAngle)
+    public static Sector Winner(Settings settings, double pointerAngle)
     {
-        double pointerAngle = Normalize(-wheelAngle);
+        pointerAngle = Normalize(pointerAngle);
         // Half-open intervals give a consistent boundary rule.
         return Sectors(settings).First(s => pointerAngle >= s.Start && pointerAngle < s.Start + s.Sweep);
     }

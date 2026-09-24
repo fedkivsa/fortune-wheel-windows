@@ -47,7 +47,7 @@ for (int count = 1; count <= 5; count++)
     Check(Math.Abs(sectors.Sum(x => x.Sweep) - 360) < 1e-9, "Full wheel coverage");
     foreach (var sector in sectors)
     {
-        var winner = WheelMath.Winner(s, -(sector.Start + sector.Sweep / 2));
+        var winner = WheelMath.Winner(s, sector.Start + sector.Sweep / 2);
         Check(winner == sector, "Pointer matches sector center");
     }
     Check(WheelMath.Winner(s, 0).PlayerIndex == 0, "Zero angle boundary");
@@ -77,6 +77,12 @@ foreach (int direction in new[] { -1, 1 })
     }
     Check(Math.Abs(previous - motion.AngleAt(motion.Duration)) < 1e-9, "Sampled final position");
 }
+var pointerSettings = new Settings();
+var pointerPlayer = new Player();
+foreach (string name in new[] { "NE", "SE", "SW", "NW" }) pointerPlayer.Fields.Add(new Field { Name = name, Share = 1 });
+pointerSettings.Players.Add(pointerPlayer);
+foreach (var (angle, field) in new[] { (45.0, 0), (135.0, 1), (225.0, 2), (315.0, 3), (-45.0, 3), (405.0, 0), (90.0, 1) })
+    Check(WheelMath.Winner(pointerSettings, angle).FieldIndex == field, "Pointer position matches stationary field, including wrap and boundary");
 var clockwise = new SpinMotion(0, 5, 5);
 var counter = new SpinMotion(0, -5, 5);
 Check(clockwise.AngleAt(100) == -counter.AngleAt(100), "Symmetric directions");
