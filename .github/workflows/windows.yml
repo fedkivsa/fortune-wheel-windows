@@ -1,7 +1,7 @@
 name: Windows build
 on:
   push:
-    branches: [main, prototype/rotating-pointer]
+    branches: [main, prototype/rotating-pointer, prototype/web]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -14,6 +14,14 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        if: hashFiles('web/package.json') != ''
+        with:
+          node-version: '24'
+      - name: Browser core checks
+        if: hashFiles('web/package.json') != ''
+        run: npm test
+        working-directory: web
       - name: Core behavior checks
         run: dotnet run --project tests/FortuneWheel.Checks -c Release
       - name: Build WPF

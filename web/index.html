@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c131f">
+  <title>Fortune Wheel</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+ <main class="app">
+  <header class="topbar">
+   <div><h1>Fortune Wheel</h1><p>Equal player sectors · Any spin can land on any field</p></div>
+   <div class="top-actions"><button id="start" class="primary">▶ Start round</button><button id="cancel" disabled>Cancel round</button></div>
+  </header>
+  <div class="workspace">
+   <section class="controls" aria-label="Wheel settings">
+    <fieldset id="editor" class="editor-fieldset">
+     <details id="field-editor" class="panel" open>
+      <summary><span>Field editor</span><span class="fold-hint">Fold / unfold</span></summary>
+      <div class="panel-content">
+       <div class="row spread"><p class="hint">Enter relative weights. For example, 1 and 3 give 25% and 75%.</p><button id="add-player" type="button">+ Player</button></div>
+       <div id="players"></div>
+      </div>
+     </details>
+     <section class="panel settings-panel" aria-labelledby="settings-heading">
+      <h2 id="settings-heading">Spin settings</h2>
+      <div class="defaults">
+       <label>Default force <input id="default-force" type="number" min="-10" max="10" step="1"></label>
+       <label>Default drag <input id="default-drag" type="number" min="1" max="10" step="1"></label>
+      </div>
+      <p class="hint">Force: −10 to 10 (+ clockwise, − counterclockwise). Drag: 1 to 10. Blank override = default.</p>
+      <div class="setting-head"><span>Player</span><span>Force</span><span>Drag</span></div>
+      <div id="spin-settings"></div>
+      <label class="checkbox"><input id="vary" type="checkbox"> Vary spin impulse (±10%)</label>
+      <div class="row"><button id="import" type="button">Import .ini</button><button id="export" type="button">Export .ini</button><input id="file" type="file" accept=".ini,text/plain" hidden></div>
+     </section>
+    </fieldset>
+   </section>
+   <section class="wheel-side" aria-label="Fortune wheel">
+    <div class="wheel-wrap">
+     <svg id="wheel" viewBox="0 0 600 600" role="img" aria-label="Wheel sectors and spinning pointer">
+      <g id="sectors"></g>
+      <g id="pointer" transform="rotate(0 300 300)"><path d="M 288 6 L 312 6 L 300 53 Z" fill="#f8fafc" stroke="#0c131f" stroke-width="3"/></g>
+     </svg>
+    </div>
+    <div class="status"><h2 id="round-status">Ready to spin</h2><p id="order">Each player spins once. Two seconds between spins.</p></div>
+    <section class="panel results" aria-labelledby="results-heading"><h2 id="results-heading">Round results</h2><ol id="results"></ol></section>
+   </section>
+  </div>
+  <p id="feedback" role="status" aria-live="polite">Ready · Valid changes are saved in this browser.</p>
+ </main>
+</body>
+</html>

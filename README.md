@@ -1,5 +1,21 @@
 # Fortune Wheel for Windows — rotating pointer prototype
 
+## Browser version on `prototype/web`
+
+This branch also includes a cross-platform version in [`web/`](web/). It preserves the dark single-screen editor, stationary wheel, pointer physics, relative field weights, shuffled player turns and two-second pause. No backend or third-party packages are needed. With Node.js installed:
+
+```sh
+git switch prototype/web
+cd web
+npm run dev
+```
+
+Open `http://127.0.0.1:4173` in a browser. Run `npm test` for the web rule and INI checks. The browser saves valid settings in local storage; **Import .ini** reads a selected file and **Export .ini** downloads a WPF-compatible configuration. It cannot automatically write to an arbitrary disk path. An imported preset also becomes the browser's saved settings. Start the local server instead of opening `index.html` directly so browser module and storage behavior is consistent.
+
+Only the pointer's SVG group changes during the animation; SVG sectors and text are rebuilt when an edit or winning outline changes. The animation uses elapsed time and pauses while its tab is hidden. Pointer angle persists between spins and rounds. If you cancel during a spin, it freezes immediately and keeps completed results.
+
+For deployment the `web/` folder is a static site. Any static HTTP host can serve it; there are no API keys or server data. Hosting is not configured in this prototype.
+
 A minimal C# / WPF prototype for 1–5 players. Dark, resizable interface based on the agreed design C: field editor on the left, wheel on the right, and per-player spin settings below the editor. All game controls are on one screen; the editor scrolls when needed.
 
 This branch, `prototype/rotating-pointer`, keeps the wheel and its labels stationary. A small inward-pointing arrow travels around the rim. Only the arrow has an animated rotation transform.

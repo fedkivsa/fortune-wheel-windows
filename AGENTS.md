@@ -4,6 +4,8 @@ This repository is a Windows C# / WPF fortune wheel prototype. Keep the app smal
 
 ## Branch variant
 
+`prototype/web`: web/ contains a dependency-free SVG and JavaScript port with the same rules as the rotating pointer WPF variant. Keep INI import/export compatible; use `npm test` in `web/`. Keep the wheel text stationary and animate only the pointer. Browser settings persist to localStorage only when valid. Import/export requires explicit user file selection/download.
+
 `prototype/rotating-pointer`: keep the wheel and all text stationary. Animate only the small arrow around the rim. Positive force moves the arrow clockwise; the winning field is selected directly from the pointer angle (do not negate it). Main keeps the original rotating-wheel version.
 
 ## Agreed behavior
