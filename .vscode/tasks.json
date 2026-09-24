@@ -1,0 +1,7 @@
+{
+ "version": "2.0.0",
+ "tasks": [
+  { "label": "build", "type": "process", "command": "dotnet", "args": ["build", "src/FortuneWheel/FortuneWheel.csproj"], "problemMatcher": "$msCompile", "group": { "kind": "build", "isDefault": true } },
+  { "label": "core checks", "type": "process", "command": "dotnet", "args": ["run", "--project", "tests/FortuneWheel.Checks"], "problemMatcher": "$msCompile" }
+ ]
+}

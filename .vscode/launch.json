@@ -1,0 +1,6 @@
+{
+ "version": "0.2.0",
+ "configurations": [
+  { "name": "Fortune Wheel (Windows)", "type": "coreclr", "request": "launch", "preLaunchTask": "build", "program": "${workspaceFolder}/src/FortuneWheel/bin/Debug/net10.0-windows/FortuneWheel.dll", "cwd": "${workspaceFolder}", "console": "internalConsole" }
+ ]
+}

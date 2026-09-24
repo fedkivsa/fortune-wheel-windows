@@ -1,0 +1,35 @@
+name: Windows build
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Core behavior checks
+        run: dotnet run --project tests/FortuneWheel.Checks -c Release
+      - name: Build WPF
+        run: dotnet build src/FortuneWheel/FortuneWheel.csproj -c Release
+      - name: Publish portable Windows app
+        run: dotnet publish src/FortuneWheel/FortuneWheel.csproj -c Release -r win-x64 --self-contained true -o artifacts/windows-x64
+      - name: Check Windows app starts
+        shell: pwsh
+        run: |
+          $app = Start-Process ./artifacts/windows-x64/FortuneWheel.exe -PassThru
+          try {
+            if ($app.WaitForExit(5000)) { throw "The app exited during startup (code $($app.ExitCode))." }
+          } finally {
+            if (!$app.HasExited) { Stop-Process -Id $app.Id }
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fortune-wheel-windows-x64
+          path: artifacts/windows-x64/
