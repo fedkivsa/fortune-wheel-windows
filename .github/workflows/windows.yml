@@ -2,24 +2,31 @@ name: Windows build
 on:
   push:
     branches: [main, prototype/rotating-pointer]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
       - name: Core behavior checks
         run: dotnet run --project tests/FortuneWheel.Checks -c Release
+
       - name: Build WPF
         run: dotnet build src/FortuneWheel/FortuneWheel.csproj -c Release
+
       - name: Publish portable Windows app
         run: dotnet publish src/FortuneWheel/FortuneWheel.csproj -c Release -r win-x64 --self-contained true -o artifacts/windows-x64
+
       - name: Check Windows app starts
         shell: pwsh
         run: |
@@ -29,7 +36,20 @@ jobs:
           } finally {
             if (!$app.HasExited) { Stop-Process -Id $app.Id }
           }
+
+      - name: Package Windows app
+        shell: pwsh
+        run: Compress-Archive -Path artifacts/windows-x64/* -DestinationPath artifacts/fortune-wheel-windows-x64.zip
+
       - uses: actions/upload-artifact@v4
         with:
           name: fortune-wheel-windows-x64
           path: artifacts/windows-x64/
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: artifacts/fortune-wheel-windows-x64.zip
