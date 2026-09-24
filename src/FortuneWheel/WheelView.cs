@@ -28,7 +28,8 @@ public sealed class WheelView : FrameworkElement
             if (s.Sweep >= 12)
             {
                 var pos = At(center, radius * 0.74, s.Start + s.Sweep / 2);
-                DrawLabel(dc, field.Name + $"\n{field.Share:0.##}%", pos, 14, 95, Brushes.White);
+                double percent = s.Sweep / (360.0 / Settings.Players.Count) * 100;
+                DrawLabel(dc, field.Name + $"\n{percent:0.##}%", pos, 14, 95, Brushes.White);
             }
             if (Selected?.PlayerIndex == s.PlayerIndex && Selected.FieldIndex == s.FieldIndex)
                 dc.DrawGeometry(null, new Pen(Brushes.White, 5), Pie(center, radius - 3, s.Start, s.Sweep));

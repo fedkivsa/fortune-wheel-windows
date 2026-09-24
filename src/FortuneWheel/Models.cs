@@ -47,19 +47,19 @@ public sealed class Settings : Observable
     public string? Validate()
     {
         if (Players.Count is < 1 or > 5) return "Choose between 1 and 5 players.";
-        if (DefaultForce is < 1 or > 9 || DefaultDrag is < 1 or > 9)
-            return "Default force and drag must be from 1 to 9.";
+        if (DefaultForce is < -10 or > 10 || DefaultDrag is < 1 or > 10)
+            return "Force must be -10 to 10; drag must be 1 to 10.";
         foreach (var player in Players)
         {
             if (string.IsNullOrWhiteSpace(player.Name)) return "Every player needs a name.";
-            if (player.Force is < 1 or > 9 || player.Drag is < 1 or > 9)
-                return $"{player.Name}: force and drag must be 1–9, or blank for default.";
+            if (player.Force is < -10 or > 10 || player.Drag is < 1 or > 10)
+                return $"{player.Name}: force must be -10–10 and drag 1–10, or blank for default.";
             if (player.Fields.Count is < 1 or > 5) return $"{player.Name}: choose 1–5 fields.";
             if (player.Fields.Any(f => string.IsNullOrWhiteSpace(f.Name))) return $"{player.Name}: every field needs a name.";
-            if (player.Fields.Any(f => !double.IsFinite(f.Share) || f.Share <= 0 || f.Share > 100))
-                return $"{player.Name}: each share must be greater than 0 and at most 100%.";
-            if (Math.Abs(player.Fields.Sum(f => f.Share) - 100) > 0.000001)
-                return $"{player.Name}: field shares must total 100% (currently {player.Fields.Sum(f => f.Share):0.##}%).";
+            if (player.Fields.Any(f => !double.IsFinite(f.Share) || f.Share < 0))
+                return $"{player.Name}: field weights must be finite, nonnegative numbers.";
+            if (!player.Fields.Any(f => f.Share > 0))
+                return $"{player.Name}: at least one field weight must be greater than zero.";
         }
         return null;
     }

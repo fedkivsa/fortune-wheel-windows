@@ -5,11 +5,13 @@ This repository is a Windows C# / WPF fortune wheel prototype. Keep the app smal
 ## Agreed behavior
 
 - Dark design C: editable player fields on the left, wheel on the right, per-player force/drag table below the editor. No navigation to game settings.
-- 1–5 players, 1–5 fields each, equal total sectors per player, shares expressed within each player's sector.
-- Spins can land on any player's field. Every player spins exactly once in a shuffled order, with independently random direction.
-- Force/drag 1–9, defaults 5/5, blank player overrides inherit defaults.
+- 1–5 players, 1–5 fields each, equal total sectors per player, nonnegative relative weights normalized within each player's sector; at least one positive weight per player.
+- Spins can land on any player's field. Every player spins exactly once in a shuffled order, direction determined by signed force.
+- Force -10–10, drag 1–10, defaults 5/5, blank player overrides inherit defaults.
 - The checkbox controls ±10% impulse variation. Physics determines the outcome; do not preselect a winner.
+- Drag always brakes and must be at least 1, including overrides and INI values. Force zero means no motion.
 - Full stop, then two seconds before the next spin. Keep angle between spins.
+- Force 1 / drag 10 travels 2 degrees without impulse variation. The field editor must be foldable.
 - Configuration is saved explicitly to INI files.
 
 ## Development

@@ -9,15 +9,15 @@ public sealed class SpinMotion
     private readonly int direction;
     public double Duration { get; }
 
-    public SpinMotion(double startAngle, int force, int drag, int direction, double impulseScale = 1)
+    public SpinMotion(double startAngle, int force, int drag, double impulseScale = 1)
     {
-        if (force is < 1 or > 9 || drag is < 1 or > 9 || Math.Abs(direction) != 1 ||
+        if (force is < -10 or > 10 || drag is < 1 or > 10 ||
             !double.IsFinite(startAngle) || !double.IsFinite(impulseScale) || impulseScale <= 0)
             throw new ArgumentOutOfRangeException(nameof(force), "Invalid spin parameters.");
         start = startAngle;
-        this.direction = direction;
-        speed = (420 + force * 100) * impulseScale;
-        deceleration = 65 + drag * 24;
+        direction = Math.Sign(force);
+        speed = 20 * Math.Pow(Math.Abs(force), 1.5) * impulseScale;
+        deceleration = 10 * drag;
         Duration = speed / deceleration;
     }
 
@@ -42,14 +42,15 @@ public static class WheelMath
         for (int p = 0; p < settings.Players.Count; p++)
         {
             var fields = settings.Players[p].Fields;
-            // Normalize only the preview while the user is editing an incomplete total.
-            // Starting a round requires strictly validated settings.
-            double total = fields.Sum(f => double.IsFinite(f.Share) && f.Share is > 0 and <= 100 ? f.Share : 0);
+            // Scale before summing so even very large finite weights cannot overflow.
+            // Invalid edits are ignored in the preview; validation prevents spinning.
+            double maximum = fields.Max(f => double.IsFinite(f.Share) && f.Share > 0 ? f.Share : 0);
+            double total = maximum > 0 ? fields.Sum(f => double.IsFinite(f.Share) && f.Share > 0 ? f.Share / maximum : 0) : 0;
             double start = p * size;
             for (int f = 0; f < fields.Count; f++)
             {
-                double weight = double.IsFinite(fields[f].Share) && fields[f].Share is > 0 and <= 100 ? fields[f].Share : 0;
-                double sweep = total > 0 ? size * weight / total : size / fields.Count;
+                double weight = maximum > 0 && double.IsFinite(fields[f].Share) && fields[f].Share > 0 ? fields[f].Share / maximum : 0;
+                double sweep = total > 0 ? size * (weight / total) : size / fields.Count;
                 result.Add(new Sector(p, f, start, sweep));
                 start += sweep;
             }

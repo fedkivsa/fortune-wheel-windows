@@ -21,11 +21,11 @@ CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
 Check(Ini.Serialize(Ini.Parse(serialized)) == serialized, "INI is culture invariant");
 Reject(serialized.Replace("Field1Share=40", "Field1Share=NaN"), "Reject NaN");
 Reject(serialized.Replace("Players=3", "Players=6"), "Reject too many players");
-Reject(serialized.Replace("Field1Share=40", "Field1Share=41"), "Reject invalid percentage total");
-Reject(serialized.Replace("Force=5", "Force=10"), "Reject invalid force");
+Check(Ini.Parse(serialized.Replace("Field1Share=40", "Field1Share=41")).Validate() is null, "Arbitrary positive totals accepted");
+Reject(serialized.Replace("Force=5", "Force=11"), "Reject invalid force");
 Reject(serialized + "\n[Wheel]\nPlayers=3", "Reject duplicate sections");
 Check(Ini.Parse(serialized).Players[0].Force is null, "Blank overrides inherit");
-foreach (double invalid in new[] { double.NaN, double.PositiveInfinity, 1e308, -1, 0 })
+foreach (double invalid in new[] { double.NaN, double.PositiveInfinity, -1 })
 {
     var preview = Settings.Example();
     preview.Players[0].Fields[0].Share = invalid;
@@ -60,12 +60,12 @@ var solo = new Player(); solo.Fields.Add(new Field()); one.Players.Add(solo);
 Check(WheelMath.Sectors(one).Single().Sweep == 360, "One player one field");
 Check(WheelMath.Winner(one, -99999).FieldIndex == 0, "Single field wins all angles");
 
-for (int force = 1; force <= 9; force++)
-for (int drag = 1; drag <= 9; drag++)
+for (int force = 1; force <= 10; force++)
+for (int drag = 1; drag <= 10; drag++)
 foreach (int direction in new[] { -1, 1 })
 {
-    var motion = new SpinMotion(37, force, drag, direction);
-    Check(motion.Duration > 0 && motion.Duration < 20, "Finite spin duration");
+    var motion = new SpinMotion(37, force * direction, drag);
+    Check(motion.Duration > 0 && motion.Duration < 70, "Finite spin duration");
     Check(motion.AngleAt(0) == 37, "Continuous start");
     Check(motion.AngleAt(motion.Duration) == motion.AngleAt(motion.Duration + 50), "Rest after stop");
     double previous = 37;
@@ -77,9 +77,46 @@ foreach (int direction in new[] { -1, 1 })
     }
     Check(Math.Abs(previous - motion.AngleAt(motion.Duration)) < 1e-9, "Sampled final position");
 }
-var clockwise = new SpinMotion(0, 5, 5, 1);
-var counter = new SpinMotion(0, 5, 5, -1);
+var clockwise = new SpinMotion(0, 5, 5);
+var counter = new SpinMotion(0, -5, 5);
 Check(clockwise.AngleAt(100) == -counter.AngleAt(100), "Symmetric directions");
-Check(new SpinMotion(0, 5, 8, 1).AngleAt(100) < clockwise.AngleAt(100), "Higher drag reduces travel");
-Check(new SpinMotion(0, 8, 5, 1).AngleAt(100) > clockwise.AngleAt(100), "Higher force increases travel");
+Check(new SpinMotion(0, 5, 8).AngleAt(100) < clockwise.AngleAt(100), "Higher drag reduces travel");
+Check(new SpinMotion(0, 8, 5).AngleAt(100) > clockwise.AngleAt(100), "Higher force increases travel");
+Check(Math.Abs(new SpinMotion(0, 1, 10).AngleAt(10) - 2) < 1e-9, "Force 1 drag 10 travels two degrees");
+foreach (double scale in new[] { 0.9, 1.1 })
+{
+    double travel = new SpinMotion(0, 1, 10, scale).AngleAt(10);
+    Check(travel >= 1 && travel <= 3, "Varied tiny spin remains within 1–3 degrees");
+}
+for (int drag = 1; drag <= 10; drag++)
+{
+    var idle = new SpinMotion(37, 0, drag);
+    Check(idle.Duration == 0 && idle.AngleAt(10) == 37, "Zero force stays still for all drag settings");
+    var config = Settings.Example(); config.DefaultForce = -10; config.DefaultDrag = drag;
+    Check(Ini.Parse(Ini.Serialize(config)).DefaultDrag == drag, "Signed settings round trip");
+}
+foreach (int drag in new[] { -10, -1, 0, 11 })
+{
+    Reject(serialized.Replace("Drag=5", $"Drag={drag}"), "Reject drag outside 1–10 in INI");
+    bool rejected = false;
+    try { _ = new SpinMotion(0, 1, drag); } catch (ArgumentOutOfRangeException) { rejected = true; }
+    Check(rejected, "Physics rejects non-braking drag");
+    var config = Settings.Example(); config.Players[0].Drag = drag;
+    Check(config.Validate() is not null, "Reject invalid per-player drag override");
+}
+foreach (double factor in new[] { 1.0, 1000.0, 1e307 })
+{
+    var weights = new Settings();
+    var player = new Player();
+    player.Fields.Add(new Field { Share = factor });
+    player.Fields.Add(new Field { Share = 3 * factor });
+    weights.Players.Add(player);
+    Check(weights.Validate() is null, "Large weights accepted");
+    Check(Math.Abs(WheelMath.Sectors(weights)[0].Sweep - 90) < 1e-9, "Weights 1:3 normalize to 25:75 at all scales");
+    Check(Ini.Serialize(Ini.Parse(Ini.Serialize(weights))) == Ini.Serialize(weights), "Weights preserved in INI");
+    player.Fields[0].Share = 0;
+    Check(weights.Validate() is null && WheelMath.Winner(weights, 0).FieldIndex == 1, "Zero weight has no winning sector");
+    player.Fields[1].Share = 0;
+    Check(weights.Validate() is not null, "Reject all-zero weights");
+}
 Console.WriteLine($"PASS: {checks} checks (physics, sectors, order, INI and validation).");

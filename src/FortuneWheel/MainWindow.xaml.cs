@@ -109,10 +109,7 @@ public partial class MainWindow : Window
     {
         var p = (Player)((Button)sender).Tag;
         if (p.Fields.Count >= 5) { Feedback.Text = "Each player can have up to 5 fields."; return; }
-        var largest = p.Fields.MaxBy(f => double.IsFinite(f.Share) ? f.Share : 0)!;
-        double share = double.IsFinite(largest.Share) && largest.Share > 0 ? largest.Share / 2 : 1;
-        largest.Share -= share;
-        p.Fields.Add(new Field { Share = share });
+        p.Fields.Add(new Field { Share = 1 });
         ChangedStructure();
     }
 
@@ -122,16 +119,13 @@ public partial class MainWindow : Window
         var p = settings.Players.First(p => p.Fields.Contains(field));
         if (p.Fields.Count <= 1) { Feedback.Text = "Keep at least one field per player."; return; }
         p.Fields.Remove(field);
-        p.Fields[0].Share += field.Share;
         ChangedStructure();
     }
 
     private void EqualShares(object sender, RoutedEventArgs e)
     {
         var p = (Player)((Button)sender).Tag;
-        double share = Math.Floor(10000.0 / p.Fields.Count) / 100;
-        for (int i = 0; i < p.Fields.Count; i++)
-            p.Fields[i].Share = i == p.Fields.Count - 1 ? 100 - share * i : share;
+        foreach (var field in p.Fields) field.Share = 1;
     }
 
     private async void StartRound(object sender, RoutedEventArgs e)
@@ -150,12 +144,11 @@ public partial class MainWindow : Window
             {
                 cts.Token.ThrowIfCancellationRequested();
                 var p = settings.Players[order[i]];
-                int direction = random.Next(2) == 0 ? -1 : 1;
                 int force = p.Force ?? settings.DefaultForce;
                 int drag = p.Drag ?? settings.DefaultDrag;
                 double scale = settings.VaryImpulse ? 0.9 + random.NextDouble() * 0.2 : 1;
-                var motion = new SpinMotion(Rotation.Angle, force, drag, direction, scale);
-                RoundStatus.Text = $"Spin {i + 1}/{order.Length} · {p.Name} · {(direction == 1 ? "↻" : "↺")}";
+                var motion = new SpinMotion(Rotation.Angle, force, drag, scale);
+                RoundStatus.Text = $"Spin {i + 1}/{order.Length} · {p.Name} · {(force > 0 ? "↻" : force < 0 ? "↺" : "No impulse")}";
                 Feedback.Text = $"Force {force} · Drag {drag} · Impulse {scale:0.00}×";
                 Wheel.Selected = null;
                 Wheel.InvalidateVisual();

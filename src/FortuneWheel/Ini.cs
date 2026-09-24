@@ -73,7 +73,7 @@ public static class Ini
             if (value.Contains('\r') || value.Contains('\n')) throw new FormatException("Names cannot contain line breaks.");
             return value.Trim();
         }
-        var text = new StringBuilder("; Fortune Wheel — percentages are within each player's sector.\n; Blank player Force/Drag inherits the defaults. Decimal separator: dot.\n[Wheel]\n");
+        var text = new StringBuilder("; Fortune Wheel — field values are relative weights within each player's sector.\n; Blank player Force/Drag inherits the defaults. Decimal separator: dot.\n[Wheel]\n");
         text.AppendLine($"Players={settings.Players.Count}");
         text.AppendLine($"Force={settings.DefaultForce}\nDrag={settings.DefaultDrag}\nVaryImpulse={settings.VaryImpulse.ToString().ToLowerInvariant()}");
         for (int i = 0; i < settings.Players.Count; i++)

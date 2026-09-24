@@ -20,12 +20,13 @@
    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,6,0">
     <StackPanel x:Name="Editor">
      <Border Style="{StaticResource Card}">
-      <StackPanel>
+      <Expander Header="Field editor" IsExpanded="True" Foreground="#E9EFF8" FontSize="18">
+      <StackPanel Margin="0,10,0,0" TextElement.FontSize="14">
        <DockPanel Margin="0,0,0,10">
         <Button DockPanel.Dock="Right" Content="+ Player" Click="AddPlayer"/>
-        <TextBlock Text="Field editor" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <TextBlock Text="Players" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
        </DockPanel>
-       <TextBlock Text="Shares are percentages of that player's sector. Total: 100%." Foreground="#93A4BB" FontSize="12" TextWrapping="Wrap" Margin="3,0,0,10"/>
+       <TextBlock Text="Enter relative weights. For example, 1 and 3 give 25% and 75%." Foreground="#93A4BB" FontSize="12" TextWrapping="Wrap" Margin="3,0,0,10"/>
        <ItemsControl ItemsSource="{Binding Players}">
         <ItemsControl.ItemTemplate><DataTemplate>
          <Border BorderBrush="#344256" BorderThickness="0,0,0,1" Padding="0,4,0,12" Margin="0,0,0,10">
@@ -39,21 +40,22 @@
              <Grid>
               <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="78"/><ColumnDefinition Width="20"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
               <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Field name"/>
-              <TextBox Grid.Column="1" Text="{Binding Share, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" AutomationProperties.Name="Share of player percent"/>
-              <TextBlock Grid.Column="2" Text="%" VerticalAlignment="Center"/>
+              <TextBox Grid.Column="1" Text="{Binding Share, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" AutomationProperties.Name="Field weight"/>
+              <TextBlock Grid.Column="2" Text=""/>
               <Button Grid.Column="3" Content="×" Tag="{Binding}" Click="RemoveField" Padding="6" ToolTip="Remove field" AutomationProperties.Name="Remove field"/>
              </Grid>
             </DataTemplate></ItemsControl.ItemTemplate>
            </ItemsControl>
            <StackPanel Orientation="Horizontal">
             <Button Content="+ Field" Tag="{Binding}" Click="AddField" FontSize="12"/>
-            <Button Content="Equal shares" Tag="{Binding}" Click="EqualShares" FontSize="12"/>
+            <Button Content="Equal weights" Tag="{Binding}" Click="EqualShares" FontSize="12"/>
            </StackPanel>
           </StackPanel>
          </Border>
         </DataTemplate></ItemsControl.ItemTemplate>
        </ItemsControl>
       </StackPanel>
+      </Expander>
      </Border>
      <Border Style="{StaticResource Card}">
       <StackPanel>
@@ -61,11 +63,11 @@
        <Grid>
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/><ColumnDefinition Width="72"/></Grid.ColumnDefinitions>
         <TextBlock Text="Default force" VerticalAlignment="Center"/>
-        <TextBox Grid.Column="1" Text="{Binding DefaultForce, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" AutomationProperties.Name="Default force 1 to 9"/>
+        <TextBox Grid.Column="1" Text="{Binding DefaultForce, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" AutomationProperties.Name="Default force -10 to 10"/>
         <TextBlock Grid.Column="2" Text="Default drag" VerticalAlignment="Center" Margin="12,0,0,0"/>
-        <TextBox Grid.Column="3" Text="{Binding DefaultDrag, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" AutomationProperties.Name="Default drag 1 to 9"/>
+        <TextBox Grid.Column="3" Text="{Binding DefaultDrag, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" AutomationProperties.Name="Default drag 1 to 10"/>
        </Grid>
-       <TextBlock Text="Override 1–9 below. Blank = default." Foreground="#93A4BB" FontSize="12" Margin="0,8"/>
+       <TextBlock Text="Force: -10 to 10. Drag: 1 to 10. Blank = default." Foreground="#93A4BB" FontSize="12" Margin="0,8"/>
        <Grid Margin="3,4">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="90"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
         <TextBlock Text="Player"/><TextBlock Grid.Column="1" Text="Force"/><TextBlock Grid.Column="2" Text="Drag"/>
@@ -75,11 +77,12 @@
          <Grid>
           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="90"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
           <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-          <TextBox Grid.Column="1" Text="{Binding Force, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, TargetNullValue=''}" ToolTip="Initial speed. Blank inherits default force." AutomationProperties.Name="Player force override"/>
-          <TextBox Grid.Column="2" Text="{Binding Drag, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, TargetNullValue=''}" ToolTip="Slowdown. Blank inherits default drag." AutomationProperties.Name="Player drag override"/>
+          <TextBox Grid.Column="1" Text="{Binding Force, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, TargetNullValue=''}" ToolTip="Positive force: clockwise. Negative: counterclockwise. Zero: no spin. Blank inherits default." AutomationProperties.Name="Player force override"/>
+          <TextBox Grid.Column="2" Text="{Binding Drag, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, TargetNullValue=''}" ToolTip="Braking strength, 1 to 10. Blank inherits default." AutomationProperties.Name="Player drag override"/>
          </Grid>
         </DataTemplate></ItemsControl.ItemTemplate>
        </ItemsControl>
+       <TextBlock Text="Force: + clockwise / − counterclockwise; 0 means no spin." TextWrapping="Wrap" Foreground="#93A4BB" FontSize="12" Margin="0,8"/>
        <CheckBox Content="Vary spin impulse (±10%)" IsChecked="{Binding VaryImpulse}" ToolTip="Apply a random multiplier from 0.9 to 1.1 to initial speed. The physics still determines the result."/>
        <StackPanel Orientation="Horizontal"><Button Content="Load .ini" Click="LoadIni"/><Button Content="Save .ini" Click="SaveIni"/></StackPanel>
       </StackPanel>
